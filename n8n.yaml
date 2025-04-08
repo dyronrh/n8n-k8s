@@ -52,7 +52,10 @@ spec:
                   name: n8n-secrets
                   key: N8N_ENCRYPTION_KEY
             - name: N8N_HOST
-              value: "n8n.local"
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: N8N_BASIC_HOST
             - name: N8N_PORT
               value: "5678"
           ports:
