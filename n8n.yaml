@@ -15,9 +15,18 @@ spec:
       containers:
         - name: n8n
           image: n8nio/n8n:latest
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "2"
+            limits:
+              memory: "4Gi"
+              cpu: "4"
           env:
             - name: DB_TYPE
-              value: postgres
+              value: postgresdb
+            - name: N8N_SECURE_COOKIE
+              value: "false"
             - name: DB_POSTGRESDB_HOST
               value: postgres
             - name: DB_POSTGRESDB_PORT
@@ -25,22 +34,16 @@ spec:
             - name: DB_POSTGRESDB_DATABASE
               value: n8n
             - name: DB_POSTGRESDB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: n8n-secrets
-                  key: POSTGRES_USER
+              value: n8n
             - name: DB_POSTGRESDB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: n8n-secrets
-                  key: POSTGRES_PASSWORD
+                  key: DB_POSTGRESDB_PASSWORD
             - name: N8N_BASIC_AUTH_ACTIVE
               value: "true"
             - name: N8N_BASIC_AUTH_USER
-              valueFrom:
-                secretKeyRef:
-                  name: n8n-secrets
-                  key: N8N_BASIC_AUTH_USER
+              value: admin
             - name: N8N_BASIC_AUTH_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -52,12 +55,15 @@ spec:
                   name: n8n-secrets
                   key: N8N_ENCRYPTION_KEY
             - name: N8N_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: n8n-secrets
-                  key: N8N_BASIC_HOST
+              value: "n8n4ever.duckdns.org"
+            - name: WEBHOOK_URL
+              value: "https://n8n4ever.duckdns.org"
+            - name: WEBHOOK_TUNNEL_URL
+              value: "https://n8n4ever.duckdns.org"
             - name: N8N_PORT
               value: "5678"
+            - name: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
+              value: "true"
           ports:
             - containerPort: 5678
 ---
@@ -65,10 +71,22 @@ apiVersion: v1
 kind: Service
 metadata:
   name: n8n
+  annotations:
+    kube-vip.io/vipHost: k8s04
+    "kube-vip.io/loadbalancerIPs": "1.1.1.1"
+  labels:
+    implementation: kube-vip
+    ipam-address: 192.168.1.142
 spec:
   type: LoadBalancer
   selector:
     app: n8n
   ports:
-    - port: 80
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 5678
+    - name: https
+      protocol: TCP
+      port: 443
       targetPort: 5678
