@@ -36,7 +36,8 @@ Despliega una instancia de PostgreSQL con almacenamiento persistente:
 - Kubernetes (probado con K3s)
 - `kubectl` configurado
 - PersistentVolume dinámico (o local-path-provisioner)
-- Dominio opcional (DuckDNS o similar) si usarás TLS
+- Dominio (DuckDNS https://www.duckdns.org/domains ) si usarás TLS
+- kubevip para balancear carga entre el cluster(no se necesita si es standalone) https://kube-vip.io/
 
 ---
 
